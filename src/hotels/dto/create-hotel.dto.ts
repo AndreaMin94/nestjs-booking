@@ -16,6 +16,15 @@ export class CreateHotelDto {
 
   @IsOptional()
   @IsString()
+  @MinLength(10)
+  address?: string;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @IsOptional()
+  @IsString()
   @MaxLength(60)
   timezone?: string; // es: "Europe/Rome"
 
