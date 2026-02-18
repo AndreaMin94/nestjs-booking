@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RoomStatus {
+  ACTIVE
+  OUT_OF_SERVICE
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+model Hotel {
+  id           String     @id @default(uuid())
+  name         String
+  timezone     String     @default("Europe/Rome")
+  checkInTime  String     @default("15:00")
+  checkOutTime String     @default("11:00")
+
+  roomTypes    RoomType[]
+  rooms        Room[]
+  bookings     Booking[]
+
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([name])
+}
+
+model RoomType {
+  id               String   @id @default(uuid())
+  hotelId          String
+  name             String
+  capacityAdults   Int
+  capacityChildren Int      @default(0)
+
+  hotel            Hotel    @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  rooms            Room[]
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([hotelId])
+  @@unique([hotelId, name])
+}
+
+model Room {
+  id         String     @id @default(uuid())
+  hotelId    String
+  roomTypeId String
+  number     String
+  floor      Int?
+  status     RoomStatus @default(ACTIVE)
+
+  hotel      Hotel      @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  roomType   RoomType   @relation(fields: [roomTypeId], references: [id], onDelete: Restrict)
+
+  bookings   Booking[]
+  roomNights RoomNight[]
+
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  @@index([hotelId, roomTypeId, status])
+  @@unique([hotelId, number])
+}
+
+model Booking {
+  id           String        @id @default(uuid())
+  hotelId      String
+  roomId       String
+  status       BookingStatus @default(PENDING)
+
+  guestEmail   String?
+  guestName    String?
+
+  checkInDate  DateTime
+  checkOutDate DateTime
+
+  hotel        Hotel         @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  room         Room          @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  nights       RoomNight[]
+
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([hotelId, status])
+  @@index([roomId])
+  @@index([checkInDate, checkOutDate])
+}
+
+model RoomNight {
+  id        String        @id @default(uuid())
+  roomId    String
+  bookingId String
+  nightDate DateTime
+  status    BookingStatus
+
+  room      Room          @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  booking   Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime      @default(now())
+
+  @@index([nightDate])
+  @@index([bookingId])
+  @@unique([roomId, nightDate])
+}
