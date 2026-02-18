@@ -5,6 +5,9 @@ export class CreateRoomTypeDto {
   @IsUUID()
   hotelId!: string;
 
+  @IsUUID()
+  roomTypeId!: string;
+
   @IsString()
   name!: string;
 

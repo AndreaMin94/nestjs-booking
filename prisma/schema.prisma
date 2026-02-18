@@ -59,6 +59,7 @@ model Room {
   id         String     @id @default(uuid())
   hotelId    String
   roomTypeId String
+  description String    @default("default description")
   number     String
   floor      Int?
   status     RoomStatus @default(ACTIVE)
